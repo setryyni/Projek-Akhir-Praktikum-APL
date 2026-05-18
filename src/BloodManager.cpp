@@ -6,6 +6,7 @@
 #include <ctime>
 #include <algorithm>
 #include <limits>
+#include <stdexcept>
 
 using namespace std;
 
@@ -62,7 +63,6 @@ int HitungPendonor(NodePendonor* Head) {
     while (Curr != nullptr) { Count++; Curr = Curr->Next; }
     return Count;
 }
-
 
 void SortByNamaAZ(NodePendonor*& Head) {
     if (Head == nullptr || Head->Next == nullptr) return;
@@ -169,76 +169,111 @@ NodePendonor* BinarySearchByNama(NodePendonor* SortedHead, const string& Nama, i
 }
 
 void MuatPendonorDariFile(NodePendonor*& Head) {
-    ifstream File("data/Pendonor.csv");
-    if (!File.is_open()) return;
+    try {
+        ifstream File("data/Pendonor.csv");
+        if (!File.is_open())
+            throw runtime_error("File Pendonor.csv tidak dapat dibuka!");
 
-    string Line;
-    while (getline(File, Line)) {
-        if (Line.empty()) continue;
-        istringstream Iss(Line);
-        Pendonor P;
-        if (!getline(Iss, P.Username,     ',')) continue;
-        if (!getline(Iss, P.Nik,          ',')) continue;
-        if (!getline(Iss, P.Nama,         ',')) continue;
-        if (!getline(Iss, P.GolDarah,     ',')) continue;
-        if (!getline(Iss, P.Rhesus,       ',')) continue;
-        if (!getline(Iss, P.Alamat,       ',')) continue;
-        if (!getline(Iss, P.NomorTelepon))      continue;
-        TambahPendonor(Head, P);
+        string Line;
+        while (getline(File, Line)) {
+            if (Line.empty()) continue;
+            istringstream Iss(Line);
+            Pendonor P;
+            if (!getline(Iss, P.Username,     ',')) continue;
+            if (!getline(Iss, P.Nik,          ',')) continue;
+            if (!getline(Iss, P.Nama,         ',')) continue;
+            if (!getline(Iss, P.GolDarah,     ',')) continue;
+            if (!getline(Iss, P.Rhesus,       ',')) continue;
+            if (!getline(Iss, P.Alamat,       ',')) continue;
+            if (!getline(Iss, P.NomorTelepon))      continue;
+            TambahPendonor(Head, P);
+        }
+        File.close();
+    } catch (const runtime_error& e) {
+        cout << "[!] Error memuat data pendonor: " << e.what() << "\n";
     }
-    File.close();
 }
 
 void SimpanPendonorKeFile(NodePendonor* Head) {
-    ofstream File("data/Pendonor.csv");
-    if (!File.is_open()) return;
-    NodePendonor* Curr = Head;
-    bool Pertama = true;
-    while (Curr != nullptr) {
-        Pendonor& P = Curr->Data;
-        if (!Pertama) File << "\n";
-        File << P.Username     << ","
-             << P.Nik          << ","
-             << P.Nama         << ","
-             << P.GolDarah     << ","
-             << P.Rhesus       << ","
-             << P.Alamat       << ","
-             << P.NomorTelepon;
-        Pertama = false;
-        Curr = Curr->Next;
+    try {
+        ofstream File("data/Pendonor.csv");
+        if (!File.is_open())
+            throw runtime_error("File Pendonor.csv tidak dapat disimpan!");
+
+        NodePendonor* Curr = Head;
+        bool Pertama = true;
+        while (Curr != nullptr) {
+            Pendonor& P = Curr->Data;
+            if (!Pertama) File << "\n";
+            File << P.Username     << ","
+                 << P.Nik          << ","
+                 << P.Nama         << ","
+                 << P.GolDarah     << ","
+                 << P.Rhesus       << ","
+                 << P.Alamat       << ","
+                 << P.NomorTelepon;
+            Pertama = false;
+            Curr = Curr->Next;
+        }
+        File.close();
+    } catch (const runtime_error& e) {
+        cout << "[!] Error menyimpan data pendonor: " << e.what() << "\n";
     }
-    File.close();
 }
 
 StokDarah MuatStokDariFile() {
     StokDarah Stok = {0, 0, 0, 0};
-    ifstream File("data/StokDarah.csv");
-    if (!File.is_open()) return Stok;
-    string Line;
-    if (getline(File, Line) && !Line.empty()) {
-        try {
+    try {
+        ifstream File("data/StokDarah.csv");
+        if (!File.is_open())
+            throw runtime_error("File StokDarah.csv tidak dapat dibuka!");
+
+        string Line;
+        if (getline(File, Line) && !Line.empty()) {
             istringstream Iss(Line);
             string Val;
-            getline(Iss, Val, ','); Stok.StokA  = Val.empty() ? 0 : stoi(Val);
-            getline(Iss, Val, ','); Stok.StokB  = Val.empty() ? 0 : stoi(Val);
-            getline(Iss, Val, ','); Stok.StokAB = Val.empty() ? 0 : stoi(Val);
-            getline(Iss, Val);      Stok.StokO  = Val.empty() ? 0 : stoi(Val);
-        } catch (...) {
-            Stok = {0, 0, 0, 0};
+
+            getline(Iss, Val, ',');
+            if (Val.empty()) throw invalid_argument("Nilai StokA kosong!");
+            Stok.StokA = stoi(Val);
+
+            getline(Iss, Val, ',');
+            if (Val.empty()) throw invalid_argument("Nilai StokB kosong!");
+            Stok.StokB = stoi(Val);
+
+            getline(Iss, Val, ',');
+            if (Val.empty()) throw invalid_argument("Nilai StokAB kosong!");
+            Stok.StokAB = stoi(Val);
+
+            getline(Iss, Val);
+            if (Val.empty()) throw invalid_argument("Nilai StokO kosong!");
+            Stok.StokO = stoi(Val);
         }
+        File.close();
+    } catch (const invalid_argument& e) {
+        cout << "[!] Error format stok darah: " << e.what() << "\n";
+        Stok = {0, 0, 0, 0};
+    } catch (const runtime_error& e) {
+        cout << "[!] Error memuat stok darah: " << e.what() << "\n";
+        Stok = {0, 0, 0, 0};
     }
-    File.close();
     return Stok;
 }
 
 void SimpanStokKeFile(const StokDarah& Stok) {
-    ofstream File("data/StokDarah.csv");
-    if (!File.is_open()) return;
-    File << Stok.StokA  << ","
-         << Stok.StokB  << ","
-         << Stok.StokAB << ","
-         << Stok.StokO;
-    File.close();
+    try {
+        ofstream File("data/StokDarah.csv");
+        if (!File.is_open())
+            throw runtime_error("File StokDarah.csv tidak dapat disimpan!");
+
+        File << Stok.StokA  << ","
+             << Stok.StokB  << ","
+             << Stok.StokAB << ","
+             << Stok.StokO;
+        File.close();
+    } catch (const runtime_error& e) {
+        cout << "[!] Error menyimpan stok darah: " << e.what() << "\n";
+    }
 }
 
 bool ValidasiGolDarah(const string& GolDarah) {
@@ -262,22 +297,44 @@ int GetStok(const StokDarah& Stok, const string& GolDarah) {
 }
 
 bool TambahStok(StokDarah& Stok, const string& GolDarah, int Jumlah) {
-    if (!ValidasiGolDarah(GolDarah) || Jumlah <= 0) return false;
-    if (GolDarah == "A")  Stok.StokA  += Jumlah;
-    if (GolDarah == "B")  Stok.StokB  += Jumlah;
-    if (GolDarah == "AB") Stok.StokAB += Jumlah;
-    if (GolDarah == "O")  Stok.StokO  += Jumlah;
-    return true;
+    try {
+        if (!ValidasiGolDarah(GolDarah))
+            throw invalid_argument("Golongan darah tidak valid: " + GolDarah);
+        if (Jumlah <= 0)
+            throw invalid_argument("Jumlah kantong harus lebih dari 0!");
+
+        if (GolDarah == "A")  Stok.StokA  += Jumlah;
+        if (GolDarah == "B")  Stok.StokB  += Jumlah;
+        if (GolDarah == "AB") Stok.StokAB += Jumlah;
+        if (GolDarah == "O")  Stok.StokO  += Jumlah;
+        return true;
+    } catch (const invalid_argument& e) {
+        cout << "[!] Error tambah stok: " << e.what() << "\n";
+        return false;
+    }
 }
 
 bool KurangiStok(StokDarah& Stok, const string& GolDarah, int Jumlah) {
-    if (!ValidasiGolDarah(GolDarah) || Jumlah <= 0) return false;
-    if (GetStok(Stok, GolDarah) < Jumlah) return false;
-    if (GolDarah == "A")  Stok.StokA  -= Jumlah;
-    if (GolDarah == "B")  Stok.StokB  -= Jumlah;
-    if (GolDarah == "AB") Stok.StokAB -= Jumlah;
-    if (GolDarah == "O")  Stok.StokO  -= Jumlah;
-    return true;
+    try {
+        if (!ValidasiGolDarah(GolDarah))
+            throw invalid_argument("Golongan darah tidak valid: " + GolDarah);
+        if (Jumlah <= 0)
+            throw invalid_argument("Jumlah kantong harus lebih dari 0!");
+        if (GetStok(Stok, GolDarah) < Jumlah)
+            throw runtime_error("Stok darah " + GolDarah + " tidak mencukupi!");
+
+        if (GolDarah == "A")  Stok.StokA  -= Jumlah;
+        if (GolDarah == "B")  Stok.StokB  -= Jumlah;
+        if (GolDarah == "AB") Stok.StokAB -= Jumlah;
+        if (GolDarah == "O")  Stok.StokO  -= Jumlah;
+        return true;
+    } catch (const invalid_argument& e) {
+        cout << "[!] Error kurangi stok: " << e.what() << "\n";
+        return false;
+    } catch (const runtime_error& e) {
+        cout << "[!] Error kurangi stok: " << e.what() << "\n";
+        return false;
+    }
 }
 
 bool StokKosong(const StokDarah& Stok) {
@@ -285,43 +342,55 @@ bool StokKosong(const StokDarah& Stok) {
 }
 
 void TambahRiwayat(const RiwayatDonor& Riwayat) {
-    bool FileKosong = true;
-    ifstream CekAkhir("data/Riwayat.csv");
-    if (CekAkhir.is_open()) {
-        CekAkhir.seekg(0, ios::end);
-        FileKosong = (CekAkhir.tellg() == 0);
-        CekAkhir.close();
-    }
+    try {
+        bool FileKosong = true;
+        ifstream CekAkhir("data/Riwayat.csv");
+        if (CekAkhir.is_open()) {
+            CekAkhir.seekg(0, ios::end);
+            FileKosong = (CekAkhir.tellg() == 0);
+            CekAkhir.close();
+        }
 
-    ofstream File("data/Riwayat.csv", ios::app);
-    if (!File.is_open()) return;
-    if (!FileKosong) File << "\n";
-    File << Riwayat.username      << ","
-         << Riwayat.TanggalDonor  << ","
-         << Riwayat.Lokasi        << ","
-         << Riwayat.JumlahKantong << ","
-         << Riwayat.Keterangan;
-    File.close();
+        ofstream File("data/Riwayat.csv", ios::app);
+        if (!File.is_open())
+            throw runtime_error("File Riwayat.csv tidak dapat dibuka!");
+
+        if (!FileKosong) File << "\n";
+        File << Riwayat.username      << ","
+             << Riwayat.TanggalDonor  << ","
+             << Riwayat.Lokasi        << ","
+             << Riwayat.JumlahKantong << ","
+             << Riwayat.Keterangan;
+        File.close();
+    } catch (const runtime_error& e) {
+        cout << "[!] Error menyimpan riwayat: " << e.what() << "\n";
+    }
 }
 
 string AmbilTglTerakhir(const string& Username) {
-    ifstream File("data/Riwayat.csv");
-    if (!File.is_open()) return "-";
+    try {
+        ifstream File("data/Riwayat.csv");
+        if (!File.is_open())
+            throw runtime_error("File Riwayat.csv tidak dapat dibuka!");
 
-    string Line, TglTerakhir = "-";
-    while (getline(File, Line)) {
-        if (Line.empty()) continue;
-        istringstream Iss(Line);
-        string U, Tgl, Lok, Ket;
-        getline(Iss, U,   ',');
-        getline(Iss, Tgl, ',');
-        getline(Iss, Lok, ',');
-        Iss.ignore(numeric_limits<streamsize>::max(), ',');
-        getline(Iss, Ket);
-        if (U == Username && Ket == "Sukses") TglTerakhir = Tgl;
+        string Line, TglTerakhir = "-";
+        while (getline(File, Line)) {
+            if (Line.empty()) continue;
+            istringstream Iss(Line);
+            string U, Tgl, Lok, Ket;
+            getline(Iss, U,   ',');
+            getline(Iss, Tgl, ',');
+            getline(Iss, Lok, ',');
+            Iss.ignore(numeric_limits<streamsize>::max(), ',');
+            getline(Iss, Ket);
+            if (U == Username && Ket == "Sukses") TglTerakhir = Tgl;
+        }
+        File.close();
+        return TglTerakhir;
+    } catch (const runtime_error& e) {
+        cout << "[!] Error membaca riwayat: " << e.what() << "\n";
+        return "-";
     }
-    File.close();
-    return TglTerakhir;
 }
 
 bool ValidasiTanggal(const string& Tanggal) {
@@ -331,41 +400,52 @@ bool ValidasiTanggal(const string& Tanggal) {
         if (i == 4 || i == 7) continue;
         if (!isdigit(Tanggal[i])) return false;
     }
-    int Bulan = stoi(Tanggal.substr(5, 2));
-    int Hari  = stoi(Tanggal.substr(8, 2));
-    int Tahun = stoi(Tanggal.substr(0, 4));
-    if (Bulan < 1 || Bulan > 12) return false;
-    if (Hari  < 1 || Hari  > 31) return false;
-    if (Tahun < 2000)             return false;
 
-    time_t Now = time(nullptr);
-    tm TmInput = {};
-    TmInput.tm_year = Tahun - 1900;
-    TmInput.tm_mon  = Bulan - 1;
-    TmInput.tm_mday = Hari;
-    time_t TInput = mktime(&TmInput);
-    if (TInput > Now) return false;
+    try {
+        int Bulan = stoi(Tanggal.substr(5, 2));
+        int Hari  = stoi(Tanggal.substr(8, 2));
+        int Tahun = stoi(Tanggal.substr(0, 4));
+        if (Bulan < 1 || Bulan > 12) return false;
+        if (Hari  < 1 || Hari  > 31) return false;
 
-    return true;
+        time_t Now = time(nullptr);
+        tm TmInput = {};
+        TmInput.tm_year = Tahun - 1900;
+        TmInput.tm_mon  = Bulan - 1;
+        TmInput.tm_mday = Hari;
+        time_t TInput = mktime(&TmInput);
+        if (TInput > Now) return false;
+
+        return true;
+    } catch (const invalid_argument& e) {
+        cout << "[!] Format tanggal tidak valid: " << e.what() << "\n";
+        return false;
+    }
 }
 
-
 bool CekUsernameAdaDiFile(const string& Username) {
-    ifstream File("data/Users.csv");
-    if (!File.is_open()) return false;
-    string Line;
-    while (getline(File, Line)) {
-        if (Line.empty()) continue;
-        istringstream Iss(Line);
-        string U, P, R;
-        getline(Iss, U, ',');
-        getline(Iss, P, ',');
-        getline(Iss, R);
-        if (U == Username) {
-            File.close();
-            return true;
+    try {
+        ifstream File("data/Users.csv");
+        if (!File.is_open())
+            throw runtime_error("File Users.csv tidak dapat dibuka!");
+
+        string Line;
+        while (getline(File, Line)) {
+            if (Line.empty()) continue;
+            istringstream Iss(Line);
+            string U, P, R;
+            getline(Iss, U, ',');
+            getline(Iss, P, ',');
+            getline(Iss, R);
+            if (U == Username) {
+                File.close();
+                return true;
+            }
         }
+        File.close();
+        return false;
+    } catch (const runtime_error& e) {
+        cout << "[!] Error cek username: " << e.what() << "\n";
+        return false;
     }
-    File.close();
-    return false;
 }
