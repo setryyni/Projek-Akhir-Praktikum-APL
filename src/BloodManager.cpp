@@ -120,7 +120,7 @@ void SortByNamaZA(NodePendonor*& Head) {
     Head = Sorted;
 }
 
-void SortByRole(NodePendonor*& Head) {
+void SortByGolDarah(NodePendonor*& Head) {
     if (Head == nullptr || Head->Next == nullptr) return;
     bool Swapped;
     do {
@@ -383,7 +383,10 @@ string AmbilTglTerakhir(const string& Username) {
             getline(Iss, Lok, ',');
             Iss.ignore(numeric_limits<streamsize>::max(), ',');
             getline(Iss, Ket);
-            if (U == Username && Ket == "Sukses") TglTerakhir = Tgl;
+            if (U == Username && Ket == "Sukses") {
+                if (TglTerakhir == "-" || Tgl > TglTerakhir)
+                    TglTerakhir = Tgl;
+            }
         }
         File.close();
         return TglTerakhir;
@@ -405,8 +408,14 @@ bool ValidasiTanggal(const string& Tanggal) {
         int Bulan = stoi(Tanggal.substr(5, 2));
         int Hari  = stoi(Tanggal.substr(8, 2));
         int Tahun = stoi(Tanggal.substr(0, 4));
+
         if (Bulan < 1 || Bulan > 12) return false;
         if (Hari  < 1 || Hari  > 31) return false;
+
+        int HariMaksimal[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+        bool KabiSat = (Tahun % 4 == 0 && Tahun % 100 != 0) || (Tahun % 400 == 0);
+        if (KabiSat) HariMaksimal[1] = 29;
+        if (Hari > HariMaksimal[Bulan - 1]) return false;
 
         time_t Now = time(nullptr);
         tm TmInput = {};

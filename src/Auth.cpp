@@ -1,80 +1,60 @@
 #include "../include/Auth.h"
-#include "../include/Models.h" 
+#include "../include/Models.h"
 #include "../include/Utils.h"
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <sstream> 
+#include <sstream>
 #include <cstdlib>
-#include <windows.h> 
+#include <windows.h>
 
 using namespace std;
 
 void Tunggu(int Detik) {
-    Sleep(Detik * 1000); 
+    Sleep(Detik * 1000);
 }
 
 bool RegisterAkun() {
     string UsernameBaru, PasswordBaru;
-    
+
     Utils::bersihkanLayar();
     cout << "=== PENDAFTARAN PENDONOR ===\n";
-    
+
     while (true) {
         cout << "Masukkan Username (Ketik '0' untuk batal): ";
-        getline(cin, UsernameBaru); 
+        getline(cin, UsernameBaru);
 
-        if (UsernameBaru.empty()) {
-            cout << "[!] Username dan password tidak boleh kosong!\n";
-            continue;
-        }
-        if (UsernameBaru.find(' ') != string::npos) {
-            cout << "[!] Username tidak boleh menggunakan spasi!\n";
-            continue;
-        }
-        break; 
-    }
+        if (UsernameBaru == "0") return false;
+        if (UsernameBaru.empty()) { cout << "[!] Username tidak boleh kosong!\n"; continue; }
+        if (UsernameBaru.find(' ') != string::npos) { cout << "[!] Username tidak boleh menggunakan spasi!\n"; continue; }
 
-    if (UsernameBaru == "0") return false; 
-
-    ifstream FileIn("data/Users.csv");
-    if (FileIn.is_open()) {
-        string barisData;
-        User U;
-        
-        while (getline(FileIn, barisData)) {
-            stringstream ss(barisData);
-            getline(ss, U.Username, ',');
-            getline(ss, U.Password, ',');
-            getline(ss, U.Role, ',');
-
-            if (U.Username == UsernameBaru) {
-                cout << "\n[!] Username sudah terdaftar. Gunakan nama lain!\n";
-                FileIn.close();
-                return false;
+        ifstream FileIn("data/Users.csv");
+        if (FileIn.is_open()) {
+            string barisData;
+            User U;
+            bool sudahAda = false;
+            while (getline(FileIn, barisData)) {
+                stringstream ss(barisData);
+                getline(ss, U.Username, ',');
+                getline(ss, U.Password, ',');
+                getline(ss, U.Role, ',');
+                if (U.Username == UsernameBaru) { sudahAda = true; break; }
             }
+            FileIn.close();
+            if (sudahAda) { cout << "[!] Username sudah terdaftar. Gunakan nama lain!\n"; continue; }
         }
-        FileIn.close();
+        break;
     }
 
     while (true) {
         cout << "Masukkan Password (Ketik '0' untuk batal, min. 5 karakter): ";
         getline(cin, PasswordBaru);
 
-        if (PasswordBaru.empty()) {
-            cout << "[!] Username dan password tidak boleh kosong!\n";
-            continue;
-        }
-        if (PasswordBaru.find(' ') != string::npos) {
-            cout << "[!] Password tidak boleh menggunakan spasi!\n";
-            continue;
-        }
-        if (PasswordBaru == "0") return false; 
-        if (PasswordBaru.length() < 5) {
-            cout << "[!] Password terlalu pendek! Harus minimal 5 karakter.\n";
-            continue;
-        }
-        break; 
+        if (PasswordBaru == "0") return false;
+        if (PasswordBaru.empty()) { cout << "[!] Password tidak boleh kosong!\n"; continue; }
+        if (PasswordBaru.find(' ') != string::npos) { cout << "[!] Password tidak boleh menggunakan spasi!\n"; continue; }
+        if (PasswordBaru.length() < 5) { cout << "[!] Password terlalu pendek! Harus minimal 5 karakter.\n"; continue; }
+        break;
     }
 
     bool FileKosong = true;
@@ -93,8 +73,8 @@ bool RegisterAkun() {
         cout << "\n[OK] Registrasi berhasil! Silakan login.\n";
         return true;
     }
-    
-    cout << "\n[!] Gagal menyimpan data ke database.\n";
+
+    cout << "\n[!] Gagal menyimpan data.\n";
     return false;
 }
 
@@ -111,9 +91,9 @@ User LoginAkun() {
             cout << "       TERLALU BANYAK GAGAL LOGIN         \n";
             cout << "  Akun terkunci sementara demi keamanan.  \n";
             cout << "==========================================\n\n";
-            
+
             int totalWaktu = 60;
-            int lebarBar = 30; 
+            int lebarBar = 30;
 
             for (int waktuBerjalan = 0; waktuBerjalan <= totalWaktu; waktuBerjalan++) {
                 int sisaWaktu = totalWaktu - waktuBerjalan;
@@ -130,13 +110,12 @@ User LoginAkun() {
 
                 if (waktuBerjalan < totalWaktu) Tunggu(1);
             }
-            
-            cout << "\n\n[OK] Kunci terbuka. Silakan coba lagi.\n";
-            Tunggu(2); 
 
-            cin.clear(); 
-            cin.ignore(1000, '\n'); 
-            Percobaan = 0; 
+            cout << "\n\n[OK] Kunci terbuka. Silakan coba lagi.\n";
+            Tunggu(2);
+            cin.clear();
+            cin.ignore(1000, '\n');
+            Percobaan = 0;
         }
 
         Utils::bersihkanLayar();
@@ -146,32 +125,32 @@ User LoginAkun() {
         }
 
         cout << "Username (Ketik '0' untuk kembali): ";
-        getline(cin, InputUser); 
+        getline(cin, InputUser);
 
+        if (InputUser == "0") return UserData;
         if (InputUser.empty()) {
-            cout << "\n[!] Username dan password tidak boleh kosong!\n";
+            cout << "\n[!] Username tidak boleh kosong!\n";
             Percobaan++;
             Tunggu(1);
             continue;
         }
-        if (InputUser == "0") return UserData; 
 
         cout << "Password (Ketik '0' untuk kembali): ";
         getline(cin, InputPass);
 
+        if (InputPass == "0") return UserData;
         if (InputPass.empty()) {
-            cout << "\n[!] Username dan password tidak boleh kosong!\n";
+            cout << "\n[!] Password tidak boleh kosong!\n";
             Percobaan++;
             Tunggu(1);
             continue;
         }
-        if (InputPass == "0") return UserData; 
 
         if (InputPass.length() < 5) {
             cout << "\n[!] Format salah. Password minimal 5 karakter!\n";
-            Percobaan++; 
+            Percobaan++;
             Tunggu(1);
-            continue; 
+            continue;
         }
 
         ifstream File("data/Users.csv");
@@ -179,12 +158,12 @@ User LoginAkun() {
             cout << "\n[!] Database tidak ditemukan!\n";
             cout << "[!] Silakan Register akun terlebih dahulu.\n";
             Tunggu(2);
-            return UserData; 
+            return UserData;
         }
 
         bool loginBerhasil = false;
         string barisData;
-        
+
         while (getline(File, barisData)) {
             stringstream ss(barisData);
             getline(ss, UserData.Username, ',');
@@ -201,16 +180,17 @@ User LoginAkun() {
         if (loginBerhasil) {
             cout << "\n[OK] Berhasil masuk! Mohon tunggu...";
             Tunggu(1);
-            return UserData; 
+            return UserData;
         } else {
-            Percobaan++; 
+            UserData = {"", "", ""};
+            Percobaan++;
             if (Percobaan < MaksPercobaan) {
-                cout << "\nKredensial salah. Mengulang...";
+                cout << "\n[!] Username atau password salah. Silakan coba lagi.\n";
                 Tunggu(1);
             }
         }
-    } 
-} 
+    }
+}
 
 User MulaiAuth() {
     int Pilihan;
@@ -223,21 +203,19 @@ User MulaiAuth() {
         cout << "2. Register\n";
         cout << "3. Keluar\n";
         cout << "Pilih [1-3]: ";
-        
+
         if (!(cin >> Pilihan)) {
             cin.clear();
             cin.ignore(1000, '\n');
             continue;
         }
-        
-        cin.ignore(1000, '\n'); 
+
+        cin.ignore(1000, '\n');
 
         switch (Pilihan) {
             case 1:
                 UserAktif = LoginAkun();
-                if (UserAktif.Username != "") {
-                    return UserAktif; 
-                }
+                if (UserAktif.Username != "") return UserAktif;
                 break;
             case 2:
                 RegisterAkun();

@@ -15,7 +15,7 @@ NodePendonor* CariPendonorByUsername(NodePendonor* Head, const std::string& User
 int HitungPendonor(NodePendonor* Head);
 void SortByNamaAZ(NodePendonor*& Head);
 void SortByNamaZA(NodePendonor*& Head);
-void SortByRole(NodePendonor*& Head);
+void SortByGolDarah(NodePendonor*& Head);
 NodePendonor* BinarySearchByNama(NodePendonor* SortedHead, const std::string& Nama, int Size);
 void MuatPendonorDariFile(NodePendonor*& Head);
 void SimpanPendonorKeFile(NodePendonor* Head);
