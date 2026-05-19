@@ -563,7 +563,7 @@ void AdminEditDataDiri(NodePendonor*& Head) {
     cout << string(40, '-') << "\n";
 
     int Pilihan;
-    cout << "Pilih field yang ingin diedit: ";
+    cout << "Pilih nomor: ";
     if (!(cin >> Pilihan)) {
         cin.clear();
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
