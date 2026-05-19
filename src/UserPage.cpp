@@ -58,6 +58,7 @@ void menuUser(User& UserAktif, NodePendonor*& Head) {
             }
             case 6:
                 cout << "\nLogout berhasil. Sampai jumpa!\n";
+                Utils::tekanEnter();
                 return;
             default:
                 cout << "[!] Pilihan tidak ada. Silakan masukkan angka 1-6." << endl;
@@ -289,11 +290,12 @@ void EditProfil(User& UserAktif, NodePendonor*& Head) {
             cin.clear();
             cin.ignore(1000, '\n');
             cout << "[!] Input tidak valid!\n";
+            Utils::tekanEnter();
             return;
         }
         cin.ignore();
 
-        if (Pilihan == 0) { cout << "[!] Dibatalkan.\n"; return; }
+        if (Pilihan == 0) { cout << "[!] Dibatalkan.\n"; Utils::tekanEnter(); return; }
 
         string NilaiBaru;
 
@@ -432,6 +434,7 @@ void EditProfil(User& UserAktif, NodePendonor*& Head) {
             }
             default:
                 cout << "[!] Pilihan tidak valid!\n";
+                Utils::tekanEnter();
                 return;
         }
 
@@ -464,6 +467,7 @@ void EditProfil(User& UserAktif, NodePendonor*& Head) {
 
         NodePendonor* Node = CariPendonorByUsername(Head, UsernameLamaSession);
         if (Node != nullptr) Node->Data = p;
+        Utils::tekanEnter();
 
     } catch (const runtime_error& e) {
         cout << "[!] Error: " << e.what() << "\n";
@@ -518,7 +522,7 @@ void riwayatDonor(const User& UserAktif) {
         int no = 1;
 
         cout << "\n===================================================================\n";
-        cout << "|                       RIWAYAT DONOR ANDA                       |\n";
+        cout << "|                       RIWAYAT DONOR ANDA                        |\n";
         cout << "===================================================================\n";
         cout << "| No | Tanggal    | Lokasi               | Jumlah | Status        |\n";
         cout << "+----+------------+----------------------+--------+---------------+\n";
@@ -573,7 +577,7 @@ void edukasi() {
             cin.ignore(1000, '\n');
             cout << "\n[!] Input harus berupa angka!\n";
             Utils::tekanEnter();
-            continue;
+            break;
         }
         cin.ignore(1000, '\n');
 
